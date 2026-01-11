@@ -1,0 +1,96 @@
+name: Preview Deployment
+
+on:
+  push:
+    branches: ["develop", "main"]
+  pull_request:
+    branches: ["develop", "main"]
+
+permissions:
+  contents: read
+  deployments: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  vercel-preview:
+    runs-on: ubuntu-latest
+
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      # 저장소 코드 가져오기
+      - name: 저장소 코드 체크아웃
+        uses: actions/checkout@v4
+
+      # Node.js 22 환경 설정
+      - name: Node.js 22 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # Vercel CLI 설치
+      - name: Vercel CLI 설치
+        run: npm install -g vercel@latest
+
+      # 프로젝트 의존성 설치
+      - name: 의존성 설치
+        run: npm ci
+
+      # 린트 및 타입 검사 실행
+      - name: 코드 검사 (린트 / 타입 체크)
+        run: |
+          npx @biomejs/biome check .
+          npm run type-check
+
+      # Vercel 미리보기 환경 변수 불러오기
+      - name: Vercel Preview 환경 변수 불러오기
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Vercel 빌드 실행
+      - name: Vercel 빌드
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Vercel 미리보기 배포
+      - name: Vercel 미리보기 배포
+        id: deploy
+        run: |
+          echo "🚀 Vercel 미리보기 배포 시작"
+          DEPLOY_URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+
+          if [ -z "$DEPLOY_URL" ]; then
+            echo "❌ 미리보기 배포 실패"
+            exit 1
+          fi
+
+          echo "preview_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+          echo "✅ 미리보기 배포 완료: $DEPLOY_URL"
+
+      # PR에 미리보기 링크 코멘트 남기기
+      - name: PR에 미리보기 링크 남기기
+        if: github.event_name == 'pull_request' && steps.deploy.outcome == 'success'
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            ## 🚀 Froof Preview 링크 바로가기
+
+            🔗 **미리보기 주소**
+            ${{ steps.deploy.outputs.preview_url }}
+
+      # 배포 결과 로그 출력
+      - name: 미리보기 배포 결과 출력
+        if: always()
+        run: |
+          echo "## 📌 미리보기 배포 요약"
+          echo "- 이벤트 종류: ${{ github.event_name }}"
+          echo "- 브랜치: ${{ github.head_ref || github.ref_name }}"
+          echo "- 커밋 SHA: ${{ github.sha }}"
+
+          if [ "${{ steps.deploy.outcome }}" = "success" ]; then
+            echo "- 배포 상태: 성공 ✅"
+            echo "- 미리보기 주소: ${{ steps.deploy.outputs.preview_url }}"
+          else
+            echo "- 배포 상태: 실패 ❌"
+          fi
