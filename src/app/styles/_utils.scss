@@ -1,0 +1,59 @@
+// 애니메이션
+@keyframes shimmer {
+	0% {
+		background-color: rgba($gray-300, 0.1);
+	}
+	50% {
+		background-color: rgba($gray-300, 0.3);
+	}
+	100% {
+		background-color: rgba($gray-300, 0.1);
+	}
+}
+
+.shimmer {
+	animation: shimmer 1.8s infinite ease-in-out;
+}
+
+// Shadow
+.gnb-shadow {
+	box-shadow: $gnb-shadow;
+}
+
+.transition-soft {
+	transition: $transition-soft;
+}
+
+// Input
+input,
+textarea {
+	outline: none;
+	border: none;
+	background: none;
+	font: inherit;
+	color: inherit;
+	box-sizing: border-box;
+
+	&::placeholder {
+		color: $gray-500;
+	}
+}
+
+select {
+	outline: none;
+	border: none;
+	background: none;
+	font: inherit;
+	color: inherit;
+	box-sizing: border-box;
+}
+
+// Focus
+*:focus {
+	outline: none;
+}
+
+*:focus-visible {
+	outline: 2px solid $primary;
+	outline-offset: 2px;
+}
