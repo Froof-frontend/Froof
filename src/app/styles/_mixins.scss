@@ -1,0 +1,111 @@
+// 반응형 믹스인
+@mixin respond-to($breakpoint) {
+	@if map-has-key($breakpoints, $breakpoint) {
+		@media (min-width: map-get($breakpoints, $breakpoint)) {
+			@content;
+		}
+	} @else {
+		@warn "Unknown breakpoint: #{$breakpoint}";
+	}
+}
+
+@mixin respond-below($breakpoint) {
+	@if map-has-key($breakpoints, $breakpoint) {
+		@media (max-width: map-get($breakpoints, $breakpoint) - 1px) {
+			@content;
+		}
+	} @else {
+		@warn "Unknown breakpoint: #{$breakpoint}";
+	}
+}
+
+// Flexbox 믹스인
+@mixin flex-center {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+@mixin flex-between {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+@mixin flex-column {
+	display: flex;
+	flex-direction: column;
+}
+
+// 텍스트 말줄임표
+@mixin text-ellipsis {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+@mixin text-ellipsis-multi($lines: 2) {
+	display: -webkit-box;
+	-webkit-line-clamp: $lines;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+// 스크롤바 스타일링
+@mixin custom-scrollbar {
+	&::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
+	}
+
+	&::-webkit-scrollbar-track {
+		background: var(--color-background-secondary);
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: var(--color-border);
+		border-radius: 4px;
+
+		&:hover {
+			background: var(--color-text-tertiary);
+		}
+	}
+}
+
+// 버튼 리셋
+@mixin button-reset {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	font: inherit;
+	color: inherit;
+}
+
+// 포커스 스타일
+@mixin focus-visible {
+	&:focus-visible {
+		outline: 2px solid var(--color-primary);
+		outline-offset: 2px;
+	}
+}
+
+// 그림자
+@mixin shadow($level: 'md') {
+	@if $level == 'sm' {
+		box-shadow: var(--shadow-sm);
+	} @else if $level == 'md' {
+		box-shadow: var(--shadow-md);
+	} @else if $level == 'lg' {
+		box-shadow: var(--shadow-lg);
+	} @else if $level == 'xl' {
+		box-shadow: var(--shadow-xl);
+	}
+}
+
+// 트랜지션
+@mixin transition($property: all, $duration: $transition-base) {
+	transition: $property $duration ease-in-out;
+}
